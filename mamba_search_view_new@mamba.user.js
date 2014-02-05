@@ -10,7 +10,7 @@
 // @version         0.4
 // ==/UserScript==
 
-function uglify_js(w ,d){
+function uglify_js(w ,d ,con){
     var j ,el
 
     w.addEventListener('load', on_load, true)
@@ -19,13 +19,13 @@ function uglify_js(w ,d){
     try {// remove ads
         rm_class("MainBlockContainer", "MainBlockLeft")
         rm_class("MainBlockRight", "mordolenta")
-    } catch(e) {}
+    } catch(e){}
 
     try {// fix Firefox.noscript issue
         el = d.createElement("div"), el.setAttribute("id", "banner_xgemius")
         d.children[0].appendChild(el)
         el = null
-    } catch(e) {}
+    } catch(e){}
 
     return true
 
@@ -35,32 +35,31 @@ function uglify_js(w ,d){
 
     function on_load(){
         var a ,ul ,oid ,i ,f
-           ,dev = !true
+           ,dev = !!con && !true// development/debug mode
 
         clearTimeout(j)
         w.removeEventListener('load', on_load, true)
 
-if(dev) console.log('hi')
+if(dev) con.log('hi')
 
         // add buttons: forget, auto next, next
         try {
             a = d.getElementsByClassName("ui-userbar-empty")[0]
             if(!a){
                 a = d.getElementsByClassName("lang-selector")[0]
-                if(!a) return console.warn('No "ui-userbar-empty" or "lang-selector" found!')
+                if(!a) return con.warn('No "ui-userbar-empty" or "lang-selector" found!')
             }
-        } catch(e) {
-            console.log('Error: "ui-userbar-empty" or "lang-selector"')
-            console.dir(e)
-            return
+        } catch(e){
+            con.log('Error: "ui-userbar-empty" or "lang-selector"')
+            return con.dir(e)
         }
 
 // forget button on anketa/user page
         if(w.location.href.match(/fromsearch/) || !w.location.href.match(/search[.]phtm/)){
             rm_class('anketa_bottom', 'b-people__similar')// remove ads
-if(dev) console.log('anketa')
+if(dev) con.log('anketa')
 
-            for(i = 0, el = document.getElementsByClassName("b-anketa_inset-form"); i < el.length; i++){
+            for(i = 0, el = d.getElementsByClassName("b-anketa_inset-form"); i < el.length; i++){
                 if(/см/.test(el[i].innerHTML)){// human height
                     oid = el[i].innerHTML.match(/[^><]* см/)[0]
                     break
@@ -87,17 +86,17 @@ if(dev) console.log('anketa')
                 // RE gets this part:  ^^^^^^^^^
                     id = w.location.href.replace(/http[s]*:[/][/][^/]*[/]([^/?]*).*$/ ,'$1')
                 } else {//numeric ID on page
-                    id = document.getElementsByClassName("mb5 fl-l")[0].innerHTML
-                                 .replace(/ID: ([^,]*),.*$/,'$1')
+                    id = d.getElementsByClassName("mb5 fl-l")[0].innerHTML
+                          .replace(/ID: ([^,]*),.*$/,'$1')
                 }
-if(dev) console.log('forgetting "' + id + '": ' + localStorage[id])
+if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
                 localStorage[id] = '-'
                 this.innerHTML = ''
             }
             return a.parentElement.insertBefore(el, a)
         }
 // autonext button
-if(dev) console.log('searching')
+if(dev) con.log('searching')
         el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
         el.innerHTML = '<div class="inset" style="color: red">' +
                        (localStorage['anext'] ?
@@ -113,7 +112,7 @@ if(dev) console.log('searching')
             this.innerHTML = '<div class="inset">' + (an ?
 '<b>Само</b> дальше идёт' :
 'Само дальше включить') + '</div>'
-if(dev) console.log('automatic next page: ' + (an ? 'yes' : 'no'))
+if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
             on_keydown()
         }
         a.parentElement.insertBefore(el, a)
@@ -134,8 +133,8 @@ if(dev) console.log('automatic next page: ' + (an ? 'yes' : 'no'))
         try {
             d.getElementsByClassName('MainBlockRight')[0].style.width = '100%'// some style
             ul = d.getElementsByClassName('MainBlockRightSearch')[0].children[0]
-            if(!ul) return console.warn('No "MainBlockRightSearch" found!')
-        } catch(e) { return console.log("MainBlockRightSearch"), console.dir(e) }
+            if(!ul) return con.warn('No "MainBlockRightSearch" found!')
+        } catch(e){ return con.log("MainBlockRightSearch"), con.dir(e) }
 
         w.scroll(0, 237)
 
@@ -167,7 +166,7 @@ if(dev) console.log('automatic next page: ' + (an ? 'yes' : 'no'))
             } else {
                 oid = a.href.replace(/.*[/]([^?]*).*$/ ,'$1')
             }
-if(dev) console.log('id search: ' + oid)
+if(dev) con.log('id search: ' + oid)
             if(w.localStorage[oid] === '-'){
                 j += 1
                 a.style.opacity = a.children[0].style.opacity = 0.4
@@ -182,7 +181,7 @@ if(dev) console.log('id search: ' + oid)
                 el.innerHTML = 'Забыть'
                 el.style.cursor = 'crosshair',el.style.color = 'red'
                 el.onclick = function(id ,a ,el){ return function(){
-if(dev) console.log('forgetting "' + id + '": ' + localStorage[id])
+if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
                      localStorage[id] = '-'
                      a.style.opacity = a.children[0].style.opacity = 0.4
                      el.innerHTML = ''
@@ -199,14 +198,14 @@ if(dev) console.log('forgetting "' + id + '": ' + localStorage[id])
                 } else {
                     t = this.href.replace(/.*[/]([^?]*).*$/ ,'$1')
                 }
-if(dev) console.log('id clear: ' + t)
+if(dev) con.log('id clear: ' + t)
 
                 localStorage[t] = '' // save or restore "interest"
                 this.style.opacity = this.children[0].style.opacity = 1
                 this.onmousedown = this.onmouseover = this.onmouseout = function(){}
             }
         }//for{}
-if(dev && !j) console.log('all items in view')
+if(dev && !j) con.log('all items in view')
 
         if(j === ul.childElementCount){// nothing to look at
             if(w.localStorage['anext']){
@@ -227,7 +226,7 @@ if(dev && !j) console.log('all items in view')
                 } else {
                     oid = a.href.replace(/.*[/]([^?]*).*$/ ,'$1')
                 }
-if(dev) console.log('id n: ' + oid)
+if(dev) con.log('id n: ' + oid)
                 if(w.localStorage[oid] === undefined){
                     w.localStorage[oid] = '-' // save "no interest"
                 }
@@ -250,4 +249,4 @@ if(dev) console.log('id n: ' + oid)
     }// on_load()
 }
 
-uglify_js(window ,document)
+uglify_js(window ,document ,console)
