@@ -2,7 +2,7 @@
 // @name            Mamba search view new
 // @author          olecom
 // @namespace       mamba
-// @description     Hides viewed persons on search pages. Any char key will mark items as "no interest" and load next page if any. Clicked items will be not marked as "no interest". Click on paginator will not do marking. Also top user bar has additional buttons. Supports: Mozilla Firefox and Google Chrome. Some code is taken from "Mamba search" by ikarta.
+// @description     Улучшенный поиск и фильтрация несимпатичных фотографий без рекламы
 // @match           http://www.mamba.ru/*
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
