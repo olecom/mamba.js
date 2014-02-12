@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.4
+// @version         0.5
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -77,14 +77,14 @@ if(dev) con.log('anketa')
             el.onclick = function forget_item(){
                 var id
 
-                if(!/[/]mb[\d]*[?]/.test(w.location.href)){//text ID from URL
+                if(!/[/]mb[\d]*[/#?]/.test(w.location.href)){//text ID from URL
                 // URL examples with text ID:
                 // http://www.mamba.ru/mega_baba
                 // http://www.mamba.ru/mega_baba?hit=10&fromsearch&sp=4
                 // http://www.mamba.ru/mega_baba/albums?sp=4
                 // http://www.mamba.ru/mega_baba/album_photos?album_id=1170973545&#closed
                 // RE gets this part:  ^^^^^^^^^
-                    id = w.location.href.replace(/http[s]*:[/][/][^/]*[/]([^/?]*).*$/ ,'$1')
+                    id = w.location.href.replace(/http[s]*:[/][/][^/]*[/]([^/?#]*).*$/ ,'$1')
                 } else {//numeric ID on page
                     id = d.getElementsByClassName("mb5 fl-l")[0].innerHTML
                           .replace(/ID: ([^,]*),.*$/,'$1')
