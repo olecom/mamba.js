@@ -7,11 +7,15 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.5
+// @version         0.6
 // ==/UserScript==
+
+var page_timeout
 
 function uglify_js(w ,d ,con){
     var j ,el
+
+    if(w.location.pathname === '/') return false
 
     w.addEventListener('load', on_load, true)
     j = setTimeout(on_load, 1234)
@@ -90,7 +94,7 @@ if(dev) con.log('anketa')
                           .replace(/ID: ([^,]*),.*$/,'$1')
                 }
 if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
-                localStorage[id] = '-'
+                localStorage[id] = '_'
                 this.innerHTML = ''
             }
             return a.parentElement.insertBefore(el, a)
@@ -104,7 +108,7 @@ if(dev) con.log('searching')
 'Само дальше включить') +
                        '</div><div style="min-width: 280px;" class="baloon tl show-hover baloon-with-close ">' +
                        '<div class="make-top-noprocess-block">' +
-'Автоматически перейти на следующую, если на странице нет "новых" анкет' +
+'Автоматически переходить на следующую, если на странице только безынтересные анкеты' +
                        '</div></div>'
         el.onclick = function automatic_next_page(){
             var an = !localStorage['anext']
@@ -113,7 +117,7 @@ if(dev) con.log('searching')
 '<b>Само</b> дальше идёт' :
 'Само дальше включить') + '</div>'
 if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
-            on_keydown()
+            an ? on_keydown() : clearTimeout(page_timeout)
         }
         a.parentElement.insertBefore(el, a)
 
@@ -167,14 +171,18 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
                 oid = a.href.replace(/.*[/]([^?]*).*$/ ,'$1')
             }
 if(dev) con.log('id search: ' + oid)
-            if(w.localStorage[oid] === '-'){
+            if(w.localStorage[oid] === '-' || w.localStorage[oid] === '_'){
                 j += 1
-                a.style.opacity = a.children[0].style.opacity = 0.4
+                if(w.localStorage[oid] === '-'){
+                    a.style.opacity = a.children[0].style.opacity = 0.8
+                } else {
+                    a.style.opacity = a.children[0].style.opacity = 0.4
+                }
                 a.onmouseover = function(){
                     this.style.opacity = this.children[0].style.opacity = 1
                 }
                 a.onmouseout = function(){
-                    this.style.opacity = this.children[0].style.opacity = 0.4
+                    this.style.opacity = this.children[0].style.opacity = 0.8
                 }
             } else {// forget inline
                 el = d.createElement("a")
@@ -182,7 +190,7 @@ if(dev) con.log('id search: ' + oid)
                 el.style.cursor = 'crosshair',el.style.color = 'red'
                 el.onclick = function(id ,a ,el){ return function(){
 if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
-                     localStorage[id] = '-'
+                     localStorage[id] = '_'
                      a.style.opacity = a.children[0].style.opacity = 0.4
                      el.innerHTML = ''
                 }}(oid ,a ,el)
@@ -209,7 +217,7 @@ if(dev && !j) con.log('all items in view')
 
         if(j === ul.childElementCount){// nothing to look at
             if(w.localStorage['anext']){
-                setTimeout(on_keydown ,2048)// give some time for switch off action
+                page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
             } else w.scroll(0, 99999)
         }
         w.addEventListener('keypress', on_keydown, true)
@@ -235,7 +243,7 @@ if(dev) con.log('id n: ' + oid)
             if((!ev || !ev.charCode) ||
                (ev && ev.charCode && ev.charCode != 32 && (ev.charCode < 48 || ev.charCode > 57))
             ) try {
-                if (ev && 13 == ev.keyCode) return// Enter,
+                if (ev && (13 == ev.keyCode || 9 == ev.keyCode)) return// Enter, Tab
                 // space and numbers are normal keys
                 // any other key will load next page if there is one
                 w.location.href = d.getElementById("Paginator")
