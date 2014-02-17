@@ -7,10 +7,8 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.6
+// @version         0.7
 // ==/UserScript==
-
-var page_timeout
 
 function uglify_js(w ,d ,con){
     var j ,el
@@ -39,6 +37,7 @@ function uglify_js(w ,d ,con){
 
     function on_load(){
         var a ,ul ,oid ,i ,f
+           ,page_timeout
            ,dev = !!con && !true// development/debug mode
 
         clearTimeout(j)
@@ -64,7 +63,7 @@ if(dev) con.log('hi')
 if(dev) con.log('anketa')
 
             for(i = 0, el = d.getElementsByClassName("b-anketa_inset-form"); i < el.length; i++){
-                if(/см/.test(el[i].innerHTML)){// human height
+                if(/[\d][\d][\d] см/.test(el[i].innerHTML)){// human height
                     oid = el[i].innerHTML.match(/[^><]* см/)[0]
                     break
                 }
