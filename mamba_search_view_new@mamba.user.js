@@ -18,10 +18,9 @@ function uglify_js(w ,d ,con){
     w.addEventListener('load', on_load, true)
     j = setTimeout(on_load, 1234)
 
-    try {// remove ads
-        rm_class("MainBlockContainer", "MainBlockLeft")
-        rm_class("MainBlockRight", "mordolenta")
-    } catch(e){}
+    // remove ads
+    rm_class("MainBlockContainer", "MainBlockLeft")
+    rm_class("MainBlockRight", "mordolenta")
 
     try {// fix Firefox.noscript issue
         el = d.createElement("div"), el.setAttribute("id", "banner_xgemius")
@@ -32,7 +31,9 @@ function uglify_js(w ,d ,con){
     return true
 
     function rm_class(p, c){
-        d.getElementsByClassName(p)[0].removeChild(d.getElementsByClassName(c)[0])
+        try {
+            d.getElementsByClassName(p)[0].removeChild(d.getElementsByClassName(c)[0])
+        } catch(e){}
     }
 
     function on_load(){
