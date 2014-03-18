@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.7
+// @version         0.7-pre
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -56,6 +56,38 @@ if(dev) con.log('hi')
             con.log('Error: "ui-userbar-empty" or "lang-selector"')
             return con.dir(e)
         }
+        w.addEventListener('keydown', on_keydown, true)
+// export button
+        el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
+        el.innerHTML = '<div class="inset" style="color: red">Экспорт</div>' +
+                       '<div class="baloon tl show-hover baloon-with-close" style="min-width: 411px">' +
+                       '<div class="make-top-noprocess-block">' +
+'Скопировать данные о просмотренных анкетах в буфер обмена<br>' +
+'для переноса в другой профиль/браузер/сохранение в файл' +
+                       '</div></div>'
+        el.onclick = function prepare_export(){
+            var s = '', t
+            this.onclick = function(){}
+            this.preCopyExportHTML = this.innerHTML
+            this.innerHTML = '' +
+'<div class="inset" style="color: red; overflow:hidden;">Нажмите <b>CTRL+C</b> и ждите...' +
+'  <textarea style="position:absolute; top:-12px; width:1px;height:1px;">' +
+'     copy|paste' +
+'  </textarea>' +
+'</div>'
+            el = this.children['0'].children['1']//textarea
+            j = 0
+            for(t in localStorage) if(t && '-' == localStorage[t]){
+                s += t + '\n'
+                j++
+            }
+            el.value = s
+            el.focus()
+            el.select()
+            this.lengthExport = j.toString()
+            el = this// -> on_keydown()
+        }
+        a.parentElement.insertBefore(el, a)
 
 // forget button on anketa/user page
         if(w.location.href.match(/fromsearch/) || !w.location.href.match(/search[.]phtm/)){
@@ -219,11 +251,26 @@ if(dev && !j) con.log('all items in view')
                 page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
             } else w.scroll(0, 99999)
         }
-        w.addEventListener('keypress', on_keydown, true)
 
         return true
 
         function on_keydown(ev){
+            if(el && el.preCopyExportHTML){
+                if(ev.ctrlKey && (67 == ev.keyCode || 99 == ev.keyCode)){
+                    setTimeout(function clean_export(){
+                        el.children['0'].children['1'].remove()//selection in chrome
+                        el.innerHTML = el.preCopyExportHTML.replace(
+                            /Экспорт[^<]*/,
+                            'Экспорт (в буфере обмена ' + el.lengthExport + ' шт.)'
+                        )
+                        el.preCopyExportHTML = el.lengthExport = ''
+                        el = null
+                    }, 12)
+                }
+                return
+            }
+            if(!ul || ev.altKey) return// export/import || keydown garbage
+
             for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
                 a = ul.children[i].children[0].children[1].children[0]
                 if(/oid=/.test(a.href)){
@@ -238,6 +285,7 @@ if(dev) con.log('id n: ' + oid)
                     w.localStorage[oid] = '-' // save "no interest"
                 }
             }
+            ul = null
             // direct calls and/or event handling
             if((!ev || !ev.charCode) ||
                (ev && ev.charCode && ev.charCode != 32 && (ev.charCode < 48 || ev.charCode > 57))
