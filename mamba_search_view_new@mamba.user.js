@@ -81,10 +81,11 @@ if(dev) con.log('hi')
             for(t in localStorage) if(t){
                 if('-' == localStorage[t]){// light
                     s += t + '\n'
+                    j++
                 } else if('_' == localStorage[t]){// hard
                     s += t + '#\n'
+                    j++
                 }
-                j++
             }
             el.value = s
             el.focus()
@@ -279,6 +280,7 @@ if(dev) con.log('id clear: ' + t)
         }//for{}
 if(dev && !j) con.log('all items in view')
 
+        el = null
         if(j === ul.childElementCount){// nothing to look at
             if(w.localStorage['anext']){
                 page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
@@ -353,9 +355,9 @@ if(dev && !j) con.log('all items in view')
                 }
                 return
             }
-            if(!ul || ev.altKey) return// export/import || keydown garbage
+            if(ev && ev.altKey) return// export/import || keydown garbage
 
-            for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
+            if(ul) for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
                 a = ul.children[i].children[0].children[1].children[0]
                 if(/oid=/.test(a.href)){
                     oid = a.href.replace(/.*oid=([^&]*).*$/ ,'$1')
@@ -371,8 +373,8 @@ if(dev) con.log('id n: ' + oid)
             }
             ul = null
             // direct calls and/or event handling
-            if((!ev || !ev.charCode) ||
-               (ev && ev.charCode && ev.charCode != 32 && (ev.charCode < 48 || ev.charCode > 57))
+            if((!ev || !ev.keyCode) ||
+               (ev && ev.keyCode && ev.keyCode != 32 && (ev.keyCode < 48 || ev.keyCode > 57))
             ) try {
                 if (ev && (13 == ev.keyCode || 9 == ev.keyCode)) return// Enter, Tab
                 // space and numbers are normal keys
@@ -382,7 +384,10 @@ if(dev) con.log('id n: ' + oid)
                         .nextSibling.nextSibling.children[0].href
             } catch(e){
                 localStorage['anext'] = '' // clear autonext, load the first page
-                w.location = d.getElementById("Paginator").children[0].children[0].href
+                ev = d.getElementById("Paginator")
+                if(ev && ev.children && ev.children.length){
+                    w.location = d.getElementById("Paginator").children[0].children[0].href
+                }
             }
         }
     }// on_load()
