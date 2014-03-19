@@ -78,14 +78,46 @@ if(dev) con.log('hi')
 '</div>'
             el = this.children['0'].children['1']//textarea
             j = 0
-            for(t in localStorage) if(t && '-' == localStorage[t]){
-                s += t + '\n'
+            for(t in localStorage) if(t){
+                if('-' == localStorage[t]){// light
+                    s += t + '\n'
+                } else if('_' == localStorage[t]){// hard
+                    s += t + '#\n'
+                }
                 j++
             }
             el.value = s
             el.focus()
             el.select()
             this.lengthExport = j.toString()
+            el = this// -> on_keydown()
+        }
+        a.parentElement.insertBefore(el, a)
+
+// import button
+        el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
+        el.innerHTML = '<div class="inset" style="color: red">Импорт</div>' +
+                       '<div class="baloon tl show-hover baloon-with-close" style="min-width: 411px">' +
+                       '<div class="make-top-noprocess-block">' +
+'Внести данные об анкетах;<br>' +
+'<b>буфер обмена должен быть с номерами анкет </b><br>' +
+'(скопированными из файла или экспортированны из другого браузера/профиля)<br><br>' +
+'Для того чтобы очистить всю память, нужно в консоли ввести команду: <i><b>localStorage.clear()</b></i>' +
+                       '</div></div>'
+        el.onclick = function prepare_import(){
+            var s = '', t
+            this.onclick = function(){}
+            this.prePasteImportHTML = this.innerHTML
+            this.innerHTML = '' +
+'<div class="inset" style="color: red; overflow:hidden;">Нажмите <b>CTRL+V</b> и ждите...' +
+'  <textarea style="position:absolute; top:-12px; width:1px;height:1px;">' +
+'     copy|paste' +
+'  </textarea>' +
+'</div>'
+            el = this.children['0'].children['1']//textarea
+            el.value = ''
+            el.focus()
+            el.select()
             el = this// -> on_keydown()
         }
         a.parentElement.insertBefore(el, a)
@@ -256,8 +288,8 @@ if(dev && !j) con.log('all items in view')
         return true
 
         function on_keydown(ev){
-            if(el && el.preCopyExportHTML){
-                if(ev.ctrlKey && (67 == ev.keyCode || 99 == ev.keyCode)){
+            if(el){
+                if(el.preCopyExportHTML && ev.ctrlKey && 67 == ev.keyCode){
                     setTimeout(function clean_export(){
                         el.children['0'].children['1'].remove()//selection in chrome
                         el.innerHTML = el.preCopyExportHTML.replace(
@@ -266,6 +298,57 @@ if(dev && !j) con.log('all items in view')
                         )
                         el.preCopyExportHTML = el.lengthExport = ''
                         el = null
+                    }, 12)
+                }
+                if(el.prePasteImportHTML && ev.ctrlKey && 86 == ev.keyCode){
+                    setTimeout(function clean_import(){
+                        var t
+                           ,val = el.children['0'].children['1'].value.split('\n')
+
+                        if(!val.length){
+                            el.innerHTML = el.prePasteImportHTML.replace(
+                                /Импорт[^<]*/,
+                                'Импорт, ошибка: пустой буфер!'
+                            )
+                            el = null
+                            return
+                        }
+                        for(j = 0; j < val.length - 1; j++){
+                            t = val[j]
+                            if(!t){
+                                el.innerHTML = el.prePasteImportHTML.replace(
+                                    /Импорт[^<]*/,
+                                    'Импорт, ошибка: пустые строки!'
+                                )
+                                el = null
+                                return
+                            }
+                            if(~t.indexOf(' ')){
+                                el.innerHTML = el.prePasteImportHTML.replace(
+                                    /Импорт[^<]*/,
+                                    'Импорт, ошибка: пробелы в номерах(' + j + ')!'
+                                )
+                                el = null
+                                return
+                            }
+                        }
+                        for(j = 0; j < val.length - 1; j++){
+                            t = val[j]
+                            if('#' == t[t.length - 1]){// hard
+                                localStorage[t.substring(0, t.length - 1)] = '_'
+                            } else {// light
+                                localStorage[t] = '-'
+                            }
+                        }
+                        el.innerHTML = el.prePasteImportHTML.replace(
+                            /Импорт[^<]*/,
+                            'Импорт (из буфера обмена ' + j + ' шт.)'
+                        )
+                        el.prePasteImportHTML = ''
+                        el = null
+                        setTimeout(function reload_page(){
+                            location.reload()
+                        }, 1234)
                     }, 12)
                 }
                 return
