@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.7-pre
+// @version         0.7
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -164,23 +164,57 @@ if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
             }
             return a.parentElement.insertBefore(el, a)
         }
+
+// autoprev button
+        el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
+        el.innerHTML = '<div class="inset" style="color: red">' +
+                       (localStorage['aprev'] ?
+'<b>Само</b> назад идёт' :
+'Само <b>назад</b> включить') +
+                       '</div><div style="min-width: 280px;" class="baloon tl show-hover baloon-with-close ">' +
+                       '<div class="make-top-noprocess-block">' +
+'Автоматически переходить на предыдующую, если на странице только безынтересные анкеты' +
+                       '</div></div>'
+        el.onclick = function automatic_prev_page(){
+            var an = !localStorage['aprev']
+            localStorage['aprev'] =  an ? '+' : ''
+            localStorage['anext'] = !an ? '+' : ''
+            this.innerHTML = '<div class="inset">' + (an ?
+'<b>Само</b> назад идёт' :
+'Само <b>назад</b> включить') + '</div>'
+            an ? on_keydown_back() : clearTimeout(page_timeout)
+        }
+        a.parentElement.insertBefore(el, a)
+
+// next backwards button
+        el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
+        el.innerHTML = '<div class="inset" style="color: red">Дальше <b>Назад</b></div>' +
+                       '<div style="min-width: 280px;" class="baloon tl show-hover baloon-with-close ">' +
+                       '<div class="make-top-noprocess-block">' +
+'Перейти на предыдущую страницу поиска, пометить все фотки (кроме выбраных) как безынтересные<br><br>' +
+'Клавиши кроме <b>[0]</b>-<b>[9]</b>, <b>[пробел]</b>, <b>[ввод]</b>, эквивалентны нажатию этой кнопки<br><br>' +
+'Переход на следущую страницу через обычную листалку (снизу) ничего не помечает' +
+                       '</div></div>'
+        el.onclick = on_keydown_back
+        a.parentElement.insertBefore(el, a)
+
 // autonext button
-if(dev) con.log('searching')
         el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
         el.innerHTML = '<div class="inset" style="color: red">' +
                        (localStorage['anext'] ?
-'<b>Само</b> дальше идёт' :
-'Само дальше включить') +
+'<b>Само</b> вперёд идёт' :
+'Само <b>вперёд</b> включить') +
                        '</div><div style="min-width: 280px;" class="baloon tl show-hover baloon-with-close ">' +
                        '<div class="make-top-noprocess-block">' +
 'Автоматически переходить на следующую, если на странице только безынтересные анкеты' +
                        '</div></div>'
         el.onclick = function automatic_next_page(){
             var an = !localStorage['anext']
-            localStorage['anext'] = an ? '+' : ''
+            localStorage['anext'] =  an ? '+' : ''
+            localStorage['aprev'] = !an ? '+' : ''
             this.innerHTML = '<div class="inset">' + (an ?
-'<b>Само</b> дальше идёт' :
-'Само дальше включить') + '</div>'
+'<b>Само</b> вперёд идёт' :
+'Само <b>вперёд</b> включить') + '</div>'
 if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
             an ? on_keydown() : clearTimeout(page_timeout)
         }
@@ -188,7 +222,7 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
 
 // next button
         el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
-        el.innerHTML = '<div class="inset" style="color: red">Дальше</div>' +
+        el.innerHTML = '<div class="inset" style="color: red">Дальше <b>Вперёд</b></div>' +
                        '<div style="min-width: 280px;" class="baloon tl show-hover baloon-with-close ">' +
                        '<div class="make-top-noprocess-block">' +
 'Перейти на следующую страницу, пометить все фотки (кроме выбраных) как безынтересные<br><br>' +
@@ -284,12 +318,18 @@ if(dev && !j) con.log('all items in view')
         if(j === ul.childElementCount){// nothing to look at
             if(w.localStorage['anext']){
                 page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
+            } else if(w.localStorage['aprev']){
+                page_timeout = setTimeout(on_keydown_back ,4096)
             } else w.scroll(0, 99999)
         }
 
         return true
 
-        function on_keydown(ev){
+        function on_keydown_back(){
+            on_keydown(null, true)
+        }
+
+        function on_keydown(ev, backwards){
             if(el){
                 if(el.preCopyExportHTML && ev.ctrlKey && 67 == ev.keyCode){
                     setTimeout(function clean_export(){
@@ -378,12 +418,18 @@ if(dev) con.log('id n: ' + oid)
             ) try {
                 if (ev && (13 == ev.keyCode || 9 == ev.keyCode)) return// Enter, Tab
                 // space and numbers are normal keys
-                // any other key will load next page if there is one
-                w.location.href = d.getElementById("Paginator")
-                    .getElementsByClassName('selected')[0]
-                        .nextSibling.nextSibling.children[0].href
+                // any other key will load prev/next page if there is one
+                ul = d.getElementById("Paginator").getElementsByClassName('selected')[0]
+                w.location.href = (backwards ?
+                    ul.previousSibling.previousSibling :
+                    ul.nextSibling.nextSibling
+                ).children[0].href
             } catch(e){
-                localStorage['anext'] = '' // clear autonext, load the first page
+                if(localStorage['anext']){
+                    localStorage['anext'] = '' // clear autonext, load the first page
+                } else if(localStorage['aprev']){
+                    localStorage['aprev'] = ''
+                }
                 ev = d.getElementById("Paginator")
                 if(ev && ev.children && ev.children.length){
                     w.location = d.getElementById("Paginator").children[0].children[0].href
