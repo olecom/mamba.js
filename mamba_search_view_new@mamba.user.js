@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.8-pre
+// @version         0.8
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -176,7 +176,6 @@ if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
         el.onclick = function automatic_prev_page(){
             var an = !localStorage['aprev']
             localStorage['aprev'] =  an ? '+' : ''
-            localStorage['anext'] = !an ? '+' : ''
             this.innerHTML = '<div class="inset">' + (an ?
 '<b>Само</b> назад идёт' :
 'Само <b>назад</b> включить') + '</div>'
@@ -209,7 +208,6 @@ if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
         el.onclick = function automatic_next_page(){
             var an = !localStorage['anext']
             localStorage['anext'] =  an ? '+' : ''
-            localStorage['aprev'] = !an ? '+' : ''
             this.innerHTML = '<div class="inset">' + (an ?
 '<b>Само</b> вперёд идёт' :
 'Само <b>вперёд</b> включить') + '</div>'
