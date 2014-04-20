@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.7
+// @version         0.8-pre
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -15,8 +15,7 @@ function uglify_js(w ,d ,con){
 
     if(w.location.pathname === '/') return false
 
-    w.addEventListener('load', on_load, true)
-    j = setTimeout(on_load, 1234)
+    j = setTimeout(on_load, 123)
 
     // remove ads
     rm_class("MainBlockContainer", "MainBlockLeft")
@@ -42,7 +41,6 @@ function uglify_js(w ,d ,con){
            ,dev = !!con && !true// development/debug mode
 
         clearTimeout(j)
-        w.removeEventListener('load', on_load, true)
 
 if(dev) con.log('hi')
 
