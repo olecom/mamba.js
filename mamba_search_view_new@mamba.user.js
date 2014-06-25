@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.8
+// @version         0.9
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -20,6 +20,9 @@ function uglify_js(w ,d ,con){
     // remove ads
     rm_class("MainBlockContainer", "MainBlockLeft")
     rm_class("MainBlockRight", "mordolenta")
+    setTimeout(function(){
+       rm_class("section-page-inner","b-photoline col-11 __load")
+    }, 512)
 
     try {// fix Firefox.noscript issue
         el = d.createElement("div"), el.setAttribute("id", "banner_xgemius")
