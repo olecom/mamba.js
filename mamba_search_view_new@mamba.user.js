@@ -133,12 +133,16 @@ if(dev) con.log('hi')
         if(w.location.href.match(/fromsearch/) || !w.location.href.match(/search[.]phtm/)){
             rm_class('anketa_bottom', 'b-people__similar')// remove ads
 if(dev) con.log('anketa')
-
+            oid = ''
             for(i = 0, el = d.getElementsByClassName("b-anketa_inset-form"); i < el.length; i++){
                 if(/[\d][\d][\d] см/.test(el[i].innerHTML)){// human height
-                    oid = el[i].innerHTML.match(/[^><]* см/)[0]
+                    oid += el[i].innerHTML.match(/[^><]* см/)[0]
                     break
                 }
+            }
+
+            if((el = d.getElementsByClassName("mb5 fl-l"))){
+                oid += ' in/mo: ' + el[0].innerHTML.match(/[\d]+$/)[0]
             }
 
             el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
