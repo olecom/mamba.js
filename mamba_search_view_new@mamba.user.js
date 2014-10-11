@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         0.9
+// @version         1.0
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
