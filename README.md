@@ -22,9 +22,15 @@ mamba.js
 
 Есть возможность смены страниц поиска вперёд и назад. Навеено очень динамичными страницами тех, кто online. Смотреть их охота с конца, где больше интересного и нового.
 
-[Mamba search view new] http://userscripts.org/scripts/show/173381
+[Mamba search view new] http://userscripts-mirror.org/scripts/show/173381
 
 Dating site userscript(s) for Chrome and Firefox
 
-[Mamba search view new] or filter out seen items, simply stored in LocalStorage.
-http://userscripts.org/scripts/show/173381
+### Скрины
+Итак. Страница поиска в фокусе без рекламы, лишних кликов и прокруток. Видны несколько новых фото, одна анкета (в центре) "не устраивает", остальные уже были увидены ранее.
+
+Сверху весь дополнительный функционал по навигации в поиске:
+![image](https://cloud.githubusercontent.com/assets/243627/4604093/cecfcba0-5186-11e4-9675-31b2dcd8a276.png)
+
+Анкета. Кнопка "забыть" сразу с наиболее интересными показателями: рост и посещения за месяц:
+![image](https://cloud.githubusercontent.com/assets/243627/4604088/9db17f5a-5186-11e4-9396-5c90b48c1bb5.png)
