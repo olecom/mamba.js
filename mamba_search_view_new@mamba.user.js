@@ -20,6 +20,7 @@ function uglify_js(w ,d ,con){
     // remove ads
     rm_class("MainBlockContainer", "MainBlockLeft")
     rm_class("MainBlockRight", "mordolenta")
+    rm_class("section-page-inner", "b-photoline col-12 __load")
 
     try {// fix Firefox.noscript issue
         el = d.createElement("div"), el.setAttribute("id", "banner_xgemius")
@@ -36,8 +37,8 @@ function uglify_js(w ,d ,con){
         if(n) try {
             d.getElementsByClassName(p)[0].removeChild(n)
         } catch(e){
-            n.style.display = 'none'
             n.innerHTML = ''
+            n.style.display = 'none'
         }
     }
 
@@ -47,8 +48,6 @@ function uglify_js(w ,d ,con){
            ,dev = !!con && !true// development/debug mode
 
         clearTimeout(j)
-
-        rm_class("section-page-inner", "b-photoline col-12 __load")
 
 if(dev) con.log('hi')
 
