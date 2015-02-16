@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         1.0
+// @version         1.1
 // ==/UserScript==
 
 function uglify_js(w ,d ,con){
@@ -18,6 +18,7 @@ function uglify_js(w ,d ,con){
     j = setTimeout(on_load, 123)
 
     // remove ads
+    rm_class("", "b-stvalentine")
     rm_class("MainBlockContainer", "MainBlockLeft")
     rm_class("MainBlockRight", "mordolenta")
     rm_class("section-page-inner", "b-photoline col-12 __load")
