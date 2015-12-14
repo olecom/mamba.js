@@ -7,10 +7,10 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         1.1
+// @version         2.0
 // ==/UserScript==
 
-function uglify_js(w ,d ,con){
+function uglify_js(w, d, con, $){
     var j ,el
 
     if(w.location.pathname === '/') return false
@@ -34,7 +34,7 @@ function uglify_js(w ,d ,con){
     function rm_class(p, c){
         var n = d.getElementsByClassName(c)
 
-        n = n.length ? n[0] : document.querySelector("." + c.slice(0, c.indexOf(' ')))
+        n = n.length ? n[0] : d.querySelector("." + c.slice(0, c.indexOf(' ')))
         if(n) try {
             d.getElementsByClassName(p)[0].removeChild(n)
         } catch(e){
@@ -48,7 +48,11 @@ function uglify_js(w ,d ,con){
            ,page_timeout
            ,dev = !!con && !true// development/debug mode
 
-        clearTimeout(j)
+        if(!w.$){
+            j = setTimeout(on_load, 128)
+            return
+        }
+        j = void 0
 
 if(dev) con.log('hi')
 
@@ -240,17 +244,24 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
         el.onclick = on_keydown
         a.parentElement.insertBefore(el, a)
 
+// search page
+
+        a = $('div.tiles-list-wrapper')
+        if(!a.length){
+            return
+        }
+        a.css('max-width', 'none')
+        $('div.extended-serp-correction').html('')// search banner
+        $('div.MW-Fix').css('max-width', 'none')
+        $('.MainBlockRight').css('width', '100%')
+
+        setTimeout(function(){
+            w.scroll(0, 332)
+        }, 512)
+
         // scan and fade away items of "no interest"
-        try {
-            d.getElementsByClassName('MainBlockRight')[0].style.width = '100%'// some style
-            ul = d.getElementsByClassName('MainBlockRightSearch')[0].children[0]
-            if(!ul) return con.warn('No "MainBlockRightSearch" found!')
-        } catch(e){ return con.log("MainBlockRightSearch"), con.dir(e) }
-
-        w.scroll(0, 237)
-
         j = 0 ,f = false
-        for(i = 0; i < ul.childElementCount; i++){
+        if(ul) for(i = 0; i < ul.childElementCount; i++){
 /*  <ul><li[i]>                         | children[i]
     <div class="opacity>                | children[0]
         <div class="sr-ico-count"/>
@@ -323,7 +334,7 @@ if(dev) con.log('id clear: ' + t)
 if(dev && !j) con.log('all items in view')
 
         el = null
-        if(j === ul.childElementCount){// nothing to look at
+        if(ul && j === ul.childElementCount){// nothing to look at
             if(w.localStorage['anext']){
                 page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
             } else if(w.localStorage['aprev']){
@@ -427,24 +438,38 @@ if(dev) con.log('id n: ' + oid)
                 if (ev && (13 == ev.keyCode || 9 == ev.keyCode)) return// Enter, Tab
                 // space and numbers are normal keys
                 // any other key will load prev/next page if there is one
-                ul = d.getElementById("Paginator").getElementsByClassName('selected')[0]
+                $('li.item.selected')[(backwards ? 'prev' : 'next')]().click()
+                setTimeout(function(){
+                    w.scroll(0, 332)
+                }, 4)
+                /*ul = d.getElementById("Paginator").getElementsByClassName('selected')[0]
                 w.location.href = (backwards ?
                     ul.previousSibling.previousSibling :
                     ul.nextSibling.nextSibling
-                ).children[0].href
+                ).children[0].href*/
             } catch(e){
                 if(localStorage['anext']){
                     localStorage['anext'] = '' // clear autonext, load the first page
                 } else if(localStorage['aprev']){
                     localStorage['aprev'] = ''
                 }
-                ev = d.getElementById("Paginator")
+                $('ul.pager').children()[0].click()
+                /*ev = d.getElementById("Paginator")
                 if(ev && ev.children && ev.children.length){
                     w.location = d.getElementById("Paginator").children[0].children[0].href
-                }
+                }*/
             }
         }
     }// on_load()
 }
+// move into the site's context to simply use jQuery
+var go = document.createElement('script')
+go.setAttribute('type','application/javascript')
 
-uglify_js(window ,document ,console)
+go.appendChild(document.createTextNode(''
++   uglify_js.toString()
++   '\n'
++   'uglify_js(window, document, console, $)'
+))
+document.head.appendChild(go)
+go = void 0
