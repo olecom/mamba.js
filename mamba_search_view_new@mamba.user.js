@@ -121,7 +121,6 @@ if(dev) con.log('hi')
 'Для того чтобы очистить всю память, нужно в консоли ввести команду: <i><b>localStorage.clear()</b></i>' +
                        '</div></div>'
         el.onclick = function prepare_import(){
-            var s = '', t
             this.onclick = function(){}
             this.prePasteImportHTML = this.innerHTML
             this.innerHTML = '' +
