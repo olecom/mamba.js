@@ -42,10 +42,9 @@ var opViewed = 0.7
 
         n = n.length ? n[0] : d.querySelector("." + c.slice(0, c.indexOf(' ')))
         if(n) try {
-            d.getElementsByClassName(p)[0].removeChild(n)
+            n.style.display = 'none'
         } catch(e){
             n.innerHTML = ''
-            n.style.display = 'none'
         }
     }
 
