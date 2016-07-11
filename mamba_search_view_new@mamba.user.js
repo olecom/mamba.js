@@ -11,6 +11,12 @@
 // ==/UserScript==
 
 function uglify_js(w, d, con, $){
+
+// Прозрачность игнорируемых и просмотренных фоток в поиске
+
+var opIgnore = 0.4
+var opViewed = 0.7
+
     var j ,el
 
     if(w.location.pathname === '/') return false
@@ -247,99 +253,116 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
         a.parentElement.insertBefore(el, a)
 
 // search page
-
-        a = $('div.tiles-list-wrapper')
-        if(!a.length){
-            return
-        }
-        a.css('max-width', 'none')
-        $('div.extended-serp-correction').html('')// search banner
-        $('div.MW-Fix').css('max-width', 'none')
-        $('.MainBlockRight').css('width', '100%')
-
-        setTimeout(function(){
-            w.scroll(0, 332)
-        }, 512)
-
-        // scan and fade away items of "no interest"
-        ul = d.getElementsByClassName('js-search-results-container')[0]
-        j = 0 ,f = false
-        if(ul) for(i = 0; i < ul.childElementCount; i++){
-/*  <ul><li[i]>                         | children[i]
-    <div class="web-search-search>                | children[0]
-        <a href="http://www.mamba.ru/anketa.phtml?oid=0123456789&hit=10&fromsearch&sp=14">
-                                    | children[0]  RE=^^^^^^^^^^
-                 http://www.mamba.ru/mb0123456789?hit=10&fromsearch&sp=1
-                                    RE=^^^^^^^^^^
-            <img>                   | children[0]
-        </a>
-        ...
-    </div></li[i]>
-    ...
-    </ul>  */
-            a = ul.children[i].children[0].children[0]// <a href....></a>
-            if(/oid=/.test(a.href)){
-                oid = a.href.replace(/.*oid=([^&]*).*$/ ,'$1')
-            } else if(/[/]mb[\d]*[?]/.test(a.href)){
-                oid = a.href.replace(/.*[/]mb([^?]*).*$/ ,'$1')
-            } else {
-                oid = a.href.replace(/.*[/]([^?]*).*$/ ,'$1')
-            }
-if(dev) con.log('id search: ' + oid)
-            if(w.localStorage[oid] === '-' || w.localStorage[oid] === '_'){
-                j += 1
-                if(w.localStorage[oid] === '-'){
-                    a.style.opacity = a.style.opacity = 0.8
-                } else {
-                    a.style.opacity = a.style.opacity = 0.4
-                }
-                a.onmouseover = function(){
-                    this.style.opacity = this.style.opacity = 1
-                }
-                a.onmouseout = function(){
-                    this.style.opacity = this.style.opacity = 0.8
-                }
-            } else {// forget inline
-                el = d.createElement("a")
-                el.innerHTML = 'Забыть'
-                el.style.cursor = 'crosshair',el.style.color = 'red'
-                el.onclick = function(id ,a ,el){ return function(){
-if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
-                     localStorage[id] = '_'
-                     a.style.opacity = a.children[0].style.opacity = 0.4
-                     el.innerHTML = ''
-                }}(oid ,a ,el)
-                a.parentNode.appendChild(el)
-                if(!f) a.scrollIntoView(true) ,f = true// scroll to the first item
-            }
-            a.onmousedown = function(){// for marked and yet not marked items
-                var t
-                if(/oid=/.test(this.href)){
-                    t = this.href.replace(/.*oid=([^&]*).*$/ ,'$1')
-                } else if(/[/]mb[\d]*[?]/.test(this.href)){
-                    t = this.href.replace(/.*[/]mb([^?]*).*$/ ,'$1')
-                } else {
-                    t = this.href.replace(/.*[/]([^?]*).*$/ ,'$1')
-                }
-if(dev) con.log('id clear: ' + t)
-
-                localStorage[t] = '' // save or restore "interest"
-                this.style.opacity = this.style.opacity = 1
-                this.onmousedown = this.onmouseover = this.onmouseout = function(){}
-            }
-        }//for{}
-if(dev && !j) con.log('all items in view')
-
-        el = null
-        if(ul && j === ul.childElementCount){// nothing to look at
-            if(w.localStorage['anext']){
-                page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
-            } else if(w.localStorage['aprev']){
-                page_timeout = setTimeout(on_keydown_back ,4096)
-            } else w.scroll(0, 99999)
-        }
+        search()
 
         return true
+
+        function search(spa, noScroll){
+if(dev) con.log('search')
+            a = $('div.tiles-list-wrapper')
+            if(!a.length){
+                return
+            }
+            if(!spa){// same page
+                a.css('max-width', 'none')
+                $('div.extended-serp-correction').html('')// search banner
+                $('div.MW-Fix').css('max-width', 'none')
+                $('.MainBlockRight').css('width', '100%')
+            }
+
+            if(!noScroll) setTimeout(function(){
+                w.scroll(0, 332)
+            }, 512)
+
+            // scan and fade away items of "no interest"
+            ul = d.getElementsByClassName('js-search-results-container')[0]
+
+            j = 0 ,f = false
+            if(ul) for(i = 0; i < ul.childElementCount; i++){
+    /*  <ul><li[i]>                         | children[i]
+        <div class="web-search-search>                | children[0]
+            <a href="http://www.mamba.ru/anketa.phtml?oid=0123456789&hit=10&fromsearch&sp=14">
+                                        | children[0]  RE=^^^^^^^^^^
+                     http://www.mamba.ru/mb0123456789?hit=10&fromsearch&sp=1
+                                        RE=^^^^^^^^^^
+                <img>                   | children[0]
+            </a>
+            ...
+        </div></li[i]>
+        ...
+        </ul>  */
+                a = ul.children[i].children[0].children[0]// <a href....></a>
+                if(oid === a.href || /javascri/.test(a.href)){// wait new search page a bit more
+                    setTimeout(function(){
+                        search(true, true)
+                    }, 512)
+                    return
+                }
+                if(0 == i){
+                    oid = a.href
+                }
+
+                if(/oid=/.test(a.href)){
+                    oid = a.href.replace(/.*oid=([^&]*).*$/ ,'$1')
+                } else if(/[/]mb[\d]*[?]/.test(a.href)){
+                    oid = a.href.replace(/.*[/]mb([^?]*).*$/ ,'$1')
+                } else {
+                    oid = a.href.replace(/.*[/]([^?]*).*$/ ,'$1')
+                }
+if(dev) con.log('id search: ' + oid)
+                if(w.localStorage[oid] === '-' || w.localStorage[oid] === '_'){
+                    j += 1
+                    if(w.localStorage[oid] === '-'){
+                        a.style.opacity = a.style.opacity = opViewed //0.7
+                    } else {
+                        a.style.opacity = a.style.opacity = opIgnore //0.4
+                    }
+                    a.onmouseover = function(){
+                        this.style.opacity = this.style.opacity = 1
+                    }
+                    a.onmouseout = function(){
+                        this.style.opacity = this.style.opacity = opViewed //0.7
+                    }
+                } else {// forget inline
+                    el = d.createElement("a")
+                    el.innerHTML = 'Забыть'
+                    el.style.cursor = 'crosshair',el.style.color = 'red'
+                    el.onclick = function(id ,a ,el){ return function(){
+if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
+                         localStorage[id] = '_'
+                         a.style.opacity = a.children[0].style.opacity = opIgnore//0.4
+                         el.innerHTML = ''
+                    }}(oid ,a ,el)
+                    a.parentNode.appendChild(el)
+                    if(!f) a.scrollIntoView(true) ,f = true// scroll to the first item
+                }
+                a.onmousedown = function(){// for marked and yet not marked items
+                    var t
+                    if(/oid=/.test(this.href)){
+                        t = this.href.replace(/.*oid=([^&]*).*$/ ,'$1')
+                    } else if(/[/]mb[\d]*[?]/.test(this.href)){
+                        t = this.href.replace(/.*[/]mb([^?]*).*$/ ,'$1')
+                    } else {
+                        t = this.href.replace(/.*[/]([^?]*).*$/ ,'$1')
+                    }
+if(dev) con.log('id clear: ' + t)
+
+                    localStorage[t] = '' // save or restore "interest"
+                    this.style.opacity = this.style.opacity = 1
+                    this.onmousedown = this.onmouseover = this.onmouseout = function(){}
+                }
+            }//for{}
+if(dev && !j) con.log('all items in view')
+
+            el = null
+            if(ul && j === ul.childElementCount){// nothing to look at
+                if(w.localStorage['anext']){
+                    page_timeout = setTimeout(on_keydown ,4096)// give some time for switch off action
+                } else if(w.localStorage['aprev']){
+                    page_timeout = setTimeout(on_keydown_back ,4096)
+                } else w.scroll(0, 99999)
+            }
+        }
 
         function on_keydown_back(){
             on_keydown(null, true)
@@ -413,6 +436,10 @@ if(dev && !j) con.log('all items in view')
             }
             if(ev && ev.altKey) return// export/import || keydown garbage
 
+            if(ul) setTimeout(function(){// dumb timeout for next search results
+                search(true)
+            }, 2048)
+
             if(ul) for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
                 a = ul.children[i].children[0].children[0]
                 if(/oid=/.test(a.href)){
@@ -436,16 +463,13 @@ if(dev) con.log('id n: ' + oid)
                 // space and numbers are normal keys
                 // any other key will load prev/next page if there is one
                 $('li.item.selected')[(backwards ? 'prev' : 'next')]().click()
-                setTimeout(function(){
-                    w.scroll(0, 332)
-                }, 4)
-            } catch(e){
+            } catch(e){// fail to auto next or auto prev; clear automatic
                 if(localStorage['anext']){
                     localStorage['anext'] = '' // clear autonext, load the first page
                 } else if(localStorage['aprev']){
                     localStorage['aprev'] = ''
                 }
-                $('ul.pager').children()[0].click()
+                $('ul.pager').children()[0].click()// goto the first page
             }
         }
     }// on_load()
