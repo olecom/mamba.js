@@ -7,7 +7,7 @@
 // @match           http://www.mamba.ru/*/*
 // @match           http://love.mail.ru/*
 // @match           http://love.mail.ru/*/*
-// @version         2.0
+// @version         2.1
 // ==/UserScript==
 
 function uglify_js(w, d, con, $){
@@ -144,9 +144,11 @@ if(dev) con.log('anketa')
                     break
                 }
             }
-
-            if((el = d.getElementsByClassName("mb5 fl-l"))){
+            el = d.getElementsByClassName("mb5 fl-l")
+            if(el && el[0]){
                 oid += ' in/mo: ' + el[0].innerHTML.match(/[\d]+$/)[0]
+            } else {
+                return
             }
 
             el = d.createElement("div") ,el.setAttribute("class", "btn-group-item")
@@ -260,27 +262,22 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
         }, 512)
 
         // scan and fade away items of "no interest"
+        ul = d.getElementsByClassName('js-search-results-container')[0]
         j = 0 ,f = false
         if(ul) for(i = 0; i < ul.childElementCount; i++){
 /*  <ul><li[i]>                         | children[i]
-    <div class="opacity>                | children[0]
-        <div class="sr-ico-count"/>
-        <div class="u-m-photo u-photo"> | children[1]
-            <a href="http://www.mamba.ru/anketa.phtml?oid=0123456789&hit=10&fromsearch&sp=14">
-                                        | children[0]  RE=^^^^^^^^^^
-                     http://www.mamba.ru/mb0123456789?hit=10&fromsearch&sp=1
-                                        RE=^^^^^^^^^^
-                <img>                   | children[0]
-            </a>
-        </div>
+    <div class="web-search-search>                | children[0]
+        <a href="http://www.mamba.ru/anketa.phtml?oid=0123456789&hit=10&fromsearch&sp=14">
+                                    | children[0]  RE=^^^^^^^^^^
+                 http://www.mamba.ru/mb0123456789?hit=10&fromsearch&sp=1
+                                    RE=^^^^^^^^^^
+            <img>                   | children[0]
+        </a>
         ...
     </div></li[i]>
     ...
     </ul>  */
-            a = ul.children[i]
-            a.style.width = '33%' ,a.style.margin = '0'// some style
-            a.children[0].style['min-height'] = '168px'// some style
-            a = a.children[0].children[1].children[0]
+            a = ul.children[i].children[0].children[0]// <a href....></a>
             if(/oid=/.test(a.href)){
                 oid = a.href.replace(/.*oid=([^&]*).*$/ ,'$1')
             } else if(/[/]mb[\d]*[?]/.test(a.href)){
@@ -292,15 +289,15 @@ if(dev) con.log('id search: ' + oid)
             if(w.localStorage[oid] === '-' || w.localStorage[oid] === '_'){
                 j += 1
                 if(w.localStorage[oid] === '-'){
-                    a.style.opacity = a.children[0].style.opacity = 0.8
+                    a.style.opacity = a.style.opacity = 0.8
                 } else {
-                    a.style.opacity = a.children[0].style.opacity = 0.4
+                    a.style.opacity = a.style.opacity = 0.4
                 }
                 a.onmouseover = function(){
-                    this.style.opacity = this.children[0].style.opacity = 1
+                    this.style.opacity = this.style.opacity = 1
                 }
                 a.onmouseout = function(){
-                    this.style.opacity = this.children[0].style.opacity = 0.8
+                    this.style.opacity = this.style.opacity = 0.8
                 }
             } else {// forget inline
                 el = d.createElement("a")
@@ -327,7 +324,7 @@ if(dev) con.log('forgetting "' + id + '": ' + localStorage[id])
 if(dev) con.log('id clear: ' + t)
 
                 localStorage[t] = '' // save or restore "interest"
-                this.style.opacity = this.children[0].style.opacity = 1
+                this.style.opacity = this.style.opacity = 1
                 this.onmousedown = this.onmouseover = this.onmouseout = function(){}
             }
         }//for{}
@@ -417,7 +414,7 @@ if(dev && !j) con.log('all items in view')
             if(ev && ev.altKey) return// export/import || keydown garbage
 
             if(ul) for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
-                a = ul.children[i].children[0].children[1].children[0]
+                a = ul.children[i].children[0].children[0]
                 if(/oid=/.test(a.href)){
                     oid = a.href.replace(/.*oid=([^&]*).*$/ ,'$1')
                 } else if(/[/]mb[\d]*[?]/.test(a.href)){
@@ -442,11 +439,6 @@ if(dev) con.log('id n: ' + oid)
                 setTimeout(function(){
                     w.scroll(0, 332)
                 }, 4)
-                /*ul = d.getElementById("Paginator").getElementsByClassName('selected')[0]
-                w.location.href = (backwards ?
-                    ul.previousSibling.previousSibling :
-                    ul.nextSibling.nextSibling
-                ).children[0].href*/
             } catch(e){
                 if(localStorage['anext']){
                     localStorage['anext'] = '' // clear autonext, load the first page
@@ -454,10 +446,6 @@ if(dev) con.log('id n: ' + oid)
                     localStorage['aprev'] = ''
                 }
                 $('ul.pager').children()[0].click()
-                /*ev = d.getElementById("Paginator")
-                if(ev && ev.children && ev.children.length){
-                    w.location = d.getElementById("Paginator").children[0].children[0].href
-                }*/
             }
         }
     }// on_load()
