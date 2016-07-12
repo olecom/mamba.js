@@ -250,6 +250,7 @@ if(dev) con.log('automatic next page: ' + (an ? 'yes' : 'no'))
         el.onclick = on_keydown
         a.parentElement.insertBefore(el, a)
 
+        var lastItem = '', lastIterator = 0
 // search page
         search()
 
@@ -276,7 +277,7 @@ if(dev) con.log('search')
             ul = d.getElementsByClassName('js-search-results-container')[0]
 
             j = 0 ,f = false
-            if(ul) for(i = 0; i < ul.childElementCount; i++){
+            if(ul) for(i = lastIterator; i < ul.childElementCount; i++){
     /*  <ul><li[i]>                         | children[i]
         <div class="web-search-search>                | children[0]
             <a href="http://www.mamba.ru/anketa.phtml?oid=0123456789&hit=10&fromsearch&sp=14">
@@ -289,15 +290,24 @@ if(dev) con.log('search')
         </div></li[i]>
         ...
         </ul>  */
-                a = ul.children[i].children[0].children[0]// <a href....></a>
-                if(oid === a.href || /javascri/.test(a.href)){// wait new search page a bit more
+                try{
+                    a = ul.children[i].children[0].children[0]// <a href....></a>
+                } catch(ex){
+                    lastItem = ''
                     setTimeout(function(){
                         search(true, true)
                     }, 512)
                     return
                 }
+                if(lastItem === a.href || /javascri/.test(a.href)){// wait new search page a bit more
+                    setTimeout(function(){
+                        search(true, true)
+                    }, 512)
+                    lastIterator = i
+                    return
+                }
                 if(0 == i){
-                    oid = a.href
+                    lastItem = '' + a.href
                 }
 
                 if(/oid=/.test(a.href)){
@@ -351,6 +361,10 @@ if(dev) con.log('id clear: ' + t)
                 }
             }//for{}
 if(dev && !j) con.log('all items in view')
+            lastIterator = 0
+            $('ul.pager').on('click', function(){
+                search(true)
+            })// goto the first page
 
             el = null
             if(ul && j === ul.childElementCount){// nothing to look at
@@ -435,8 +449,8 @@ if(dev && !j) con.log('all items in view')
             if(ev && ev.altKey) return// export/import || keydown garbage
 
             if(ul) setTimeout(function(){// dumb timeout for next search results
-                search(true)
-            }, 2048)
+                search(true, true)
+            }, 1)
 
             if(ul) for(i = 0; i < ul.childElementCount; i++){// scan and save "no interest"
                 a = ul.children[i].children[0].children[0]
